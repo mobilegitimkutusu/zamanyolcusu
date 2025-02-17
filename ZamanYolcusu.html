@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zaman Yolcusu Bilim İnsanı</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', sans-serif;
+            background: #000 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23ffffff" fill-opacity="0.05"/></svg>') repeat;
+            color: #fff;
+        }
+
+        .game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .time-portal {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .era-title {
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        .scientist-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .scientist-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+        }
+
+        .dialogue-box {
+            background: rgba(44, 62, 80, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .choice-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .choice-btn {
+            background: var(--secondary-color);
+            border: none;
+            padding: 15px;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            background: var(--accent-color);
+        }
+
+        .inventory {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(44, 62, 80, 0.9);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .time-machine {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            padding: 10px;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .time-machine:hover {
+            transform: rotate(360deg);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: var(--secondary-color);
+            transition: width 0.5s ease;
+        }
+
+        @keyframes portalEffect {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .portal-active {
+            animation: portalEffect 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="time-machine" onclick="toggleTimeMachine()">⌛</div>
+        
+        <div class="progress-bar">
+            <div class="progress" id="gameProgress"></div>
+        </div>
+
+        <div class="time-portal" id="currentEra">
+            <!-- Dinamik içerik buraya gelecek -->
+        </div>
+
+        <div class="inventory" id="inventory">
+            🎒 Envanter: <span id="inventoryItems"></span>
+        </div>
+    </div>
+
+    <script>
+        const timeEras = [
+            {
+                id: 1,
+                era: "Antik Yunan - MÖ 287",
+                scientist: "Arşimet",
+                problem: "Su Kaldırma Kuvveti",
+                dialogue: "Hmm... Kralın tacının saf altından yapılıp yapılmadığını nasıl anlayabilirim?",
+                emoji: "👨‍🔬",
+                choices: [
+                    {
+                        text: "Tacı suya batırıp taşan suyu ölçelim",
+                        correct: true,
+                        response: "Eureka! Haklısın! Taşan su miktarı bize tacın hacmini verecek!"
+                    },
+                    {
+                        text: "Tacı tartalım yeter",
+                        correct: false,
+                        response: "Sadece ağırlık ölçmek yetmez, hacmi de bilmeliyiz."
+                    },
+                    {
+                        text: "Tacı eritelim",
+                        correct: false,
+                        response: "Kralın tacını eritersek başımız belaya girer!"
+                    }
+                ],
+                reward: "🌊 Su Kaldırma Kuvveti Teorisi"
+            },
+            {
+                id: 2,
+                era: "Rönesans - 1490",
+                scientist: "Leonardo da Vinci",
+                problem: "Uçuş Mekanizması",
+                dialogue: "İnsan kanatlarla uçabilir mi? Kuşları uzun süredir gözlemliyorum...",
+                emoji: "👨‍🎨",
+                choices: [
+                    {
+                        text: "Kuş kanatlarının yapısını inceleyelim",
+                        correct: true,
+                        response: "Evet! Aerodinamik prensipleri anlamamız gerek!"
+                    },
+                    {
+                        text: "Direkt atlayalım",
+                        correct: false,
+                        response: "Bu çok tehlikeli olur!"
+                    },
+                    {
+                        text: "Büyük kuşları evcilleştirelim",
+                        correct: false,
+                        response: "Bu pek pratik bir çözüm değil."
+                    }
+                ],
+                reward: "✈️ Aerodinamik Prensipleri"
+            },
+            {
+                id: 3,
+                era: "17. Yüzyıl - 1666",
+                scientist: "Isaac Newton",
+                problem: "Yerçekimi Kanunu",
+                dialogue: "Şu düşen elma... Neden hep aşağı düşüyor?",
+                emoji: "🧔",
+                choices: [
+                    {
+                        text: "Kütle çekim kuvvetini hesaplayalım",
+                        correct: true,
+                        response: "Mükemmel! Kütle çekim yasasını keşfettik!"
+                    },
+                    {
+                        text: "Elmaları yukarı fırlatalım",
+                        correct: false,
+                        response: "Bu bize bir şey öğretmez."
+                    },
+                    {
+                        text: "Başka meyveler deneyelim",
+                        correct: false,
+                        response: "Meyvenin türü önemli değil."
+                    }
+                ],
+                reward: "🍎 Yerçekimi Kanunu"
+            }
+        ];
+
+        let currentEraIndex = 0;
+        let inventory = [];
+        let progress = 0;
+
+        function initGame() {
+            loadEra(currentEraIndex);
+            updateProgress();
+        }
+
+        function loadEra(index) {
+            if (index >= timeEras.length) {
+                gameComplete();
+                return;
+            }
+
+            const era = timeEras[index];
+            const eraContainer = document.getElementById('currentEra');
+            
+            eraContainer.innerHTML = `
+                <h2 class="era-title">${era.era}</h2>
+                <div class="scientist-container">
+                    <div class="scientist-image">${era.emoji}</div>
+                    <div class="dialogue-box">
+                        <p><strong>${era.scientist}:</strong> ${era.dialogue}</p>
+                    </div>
+                </div>
+                <div class="choice-container">
+                    ${era.choices.map((choice, i) => `
+                        <button class="choice-btn" onclick="makeChoice(${i})">${choice.text}</button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function makeChoice(choiceIndex) {
+            const era = timeEras[currentEraIndex];
+            const choice = era.choices[choiceIndex];
+
+            if (choice.correct) {
+                inventory.push(era.reward);
+                updateInventory();
+                alert(`Doğru! ${choice.response}`);
+                currentEraIndex++;
+                progress += (100 / timeEras.length);
+                updateProgress();
+                loadEra(currentEraIndex);
+            } else {
+                alert(`Yanlış... ${choice.response}`);
+            }
+        }
+
+        function updateInventory() {
+            document.getElementById('inventoryItems').textContent = inventory.join(' ');
+        }
+
+        function updateProgress() {
+            document.getElementById('gameProgress').style.width = `${progress}%`;
+        }
+
+        function gameComplete() {
+            const container = document.getElementById('currentEra');
+            container.innerHTML = `
+                <h2 class="era-title">Tebrikler! Zaman Akışını Düzelttin!</h2>
+                <div class="scientist-container">
+                    <p>Tüm bilimsel keşiflere katkıda bulundun ve zamanı düzelttin!</p>
+                    <p>Topladığın Bilimsel Keşifler:</p>
+                    <ul>${inventory.map(item => `<li>${item}</li>`).join('')}</ul>
+                </div>
+                <button class="choice-btn" onclick="restartGame()">Yeniden Başla</button>
+            `;
+        }
+
+        function restartGame() {
+            currentEraIndex = 0;
+            inventory = [];
+            progress = 0;
+            updateInventory();
+            updateProgress();
+            loadEra(currentEraIndex);
+        }
+
+        function toggleTimeMachine() {
+            document.querySelector('.time-portal').classList.toggle('portal-active');
+        }
+
+        // Oyunu başlat
+        window.onload = initGame;
+    </script>
+</body>
+</html>
